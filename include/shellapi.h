@@ -328,7 +328,7 @@ HRESULT WINAPI SHEmptyRecycleBinW(HWND,LPCWSTR,DWORD);
 BOOL WINAPI SHGetShortcutTarget(LPCTSTR,LPTSTR,int); 
 DWORD WINAPI SHCreateShortcut(LPTSTR,LPTSTR);
 HBITMAP WINAPI SHLoadDIBitmap(LPCTSTR);
-#if (_WIN32_WCE >= 0x300)
+#if (_WIN32_WCE >= 0x0400)
 BOOL WINAPI SHGetSpecialFolderPath(HWND,LPWSTR,int,BOOL);
 #endif
 #if (_WIN32_WCE >= 0x420)
@@ -384,6 +384,13 @@ typedef SHFILEINFOA SHFILEINFO;
 #define SHQueryRecycleBin SHQueryRecycleBinA
 #define SHEmptyRecycleBin SHEmptyRecycleBinA
 #endif
+/* Windows CE COREDLL exports (signatures from the Windows CE SDK
+ * shellapi.h). */
+#ifdef _WIN32_WCE
+HRESULT WINAPI SHLoadIndirectString(LPCWSTR pszSource, LPWSTR pszOutBuf, UINT cchOutBuf, void **ppvReserved);
+int WINAPI SHShowOutOfMemory(HWND hwndOwner, UINT grfFlags);
+#endif /* _WIN32_WCE */
+
 #ifdef __cplusplus
 }
 #endif

@@ -93,6 +93,13 @@ DWORD SetSystemPowerState(LPCWSTR,DWORD,DWORD);
 
 #endif	/* _WIN32_WCE */
 
+/* Windows CE COREDLL exports (signatures from the Windows CE SDK
+ * pm.h). */
+#ifdef _WIN32_WCE
+BOOL WINAPI PowerPolicyNotify(DWORD dwMessage, DWORD dwData);
+void WINAPI BatteryDrvrGetLevels(PBYTE pbLevels); /* battery PDD interface */
+#endif /* _WIN32_WCE */
+
 #ifdef  __cplusplus
 }
 #endif

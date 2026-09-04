@@ -27,6 +27,15 @@
 #define _68K_
 #elif defined(_M_ARM) && !defined(ARM)
 #define ARM
+#elif defined(__arm__) && !defined(_M_ARM)
+/* Clang targets like arm-wince-mingw32 / armv7-w64-windows-gnu do not
+   predefine the MSVC-style _M_ARM the way CeGCC's GCC does; derive it
+   from the compiler's own ARM macro so the CONTEXT/exception layout
+   below is selected there too. */
+#ifndef ARM
+#define ARM
+#endif
+#define _M_ARM 1
 #endif
 
 #ifdef __cplusplus
@@ -433,7 +442,23 @@ typedef DWORD FLONG;
 #define THREAD_BASE_PRIORITY_MAX	2
 #define THREAD_BASE_PRIORITY_MIN	(-2)
 #define THREAD_BASE_PRIORITY_IDLE	(-15)
+// Windows CE exception record flags.  NOTE: the CE values differ from the
+// desktop Windows ones (EXCEPTION_UNWINDING is 0x2 on CE, 0x20000 on desktop).
+// Values from the CE 6.0 SDK winnt.h (ce600/PUBLIC/COMMON/SDK/INC/winnt.h).
 #define EXCEPTION_NONCONTINUABLE	1
+#define EXCEPTION_UNWINDING		2	// Unwind is in progress
+#define EXCEPTION_EXIT_UNWIND		4	// Exit unwind is in progress
+#define EXCEPTION_STACK_INVALID		8	// Stack out of limits or unaligned
+#define EXCEPTION_NESTED_CALL		0x10	// Nested exception handler call
+#define EXCEPTION_TARGET_UNWIND		0x20	// Target unwind in progress
+#define EXCEPTION_COLLIDED_UNWIND	0x40	// Collided exception handler call
+#define EXCEPTION_FLAG_UNHANDLED	0x80000000
+#define EXCEPTION_FLAG_IN_CALLBACK	0x40000000
+#define EXCEPTION_UNWIND (EXCEPTION_UNWINDING | EXCEPTION_EXIT_UNWIND | \
+                          EXCEPTION_TARGET_UNWIND | EXCEPTION_COLLIDED_UNWIND)
+#define IS_UNWINDING(Flag)   ((Flag & EXCEPTION_UNWIND) != 0)
+#define IS_DISPATCHING(Flag) ((Flag & EXCEPTION_UNWIND) == 0)
+#define IS_TARGET_UNWIND(Flag) (Flag & EXCEPTION_TARGET_UNWIND)
 #define EXCEPTION_MAXIMUM_PARAMETERS 15
 #define MUTANT_QUERY_STATE	0x0001
 #define MUTANT_ALL_ACCESS	(STANDARD_RIGHTS_REQUIRED|SYNCHRONIZE|MUTANT_QUERY_STATE)
@@ -3821,7 +3846,7 @@ typedef enum _POWER_INFORMATION_LEVEL {
 	ProcessorPowerPolicyCurrent
 } POWER_INFORMATION_LEVEL;
 
-#if (_WIN32_WINNT >= 0x0500)
+#if (_WIN32_WINNT >= 0x0500) || (_WIN32_WCE >= 0x0600)
 typedef LONG (WINAPI *PVECTORED_EXCEPTION_HANDLER)(PEXCEPTION_POINTERS);
 #endif
 #if 1 /* (WIN32_WINNT >= 0x0500) */
@@ -4051,6 +4076,13 @@ typedef unsigned int size_t;
 #endif
 
 #endif /* RC_INVOKED */
+
+
+#ifdef _WIN32_WCE
+/* Copies cbSize bytes, returning FALSE (rather than faulting) if any page
+   in the source or destination range is inaccessible.  */
+BOOL CeSafeCopyMemory(LPVOID pDst, LPCVOID pSrc, DWORD cbSize);
+#endif
 
 #ifdef __cplusplus
 }

@@ -2947,7 +2947,7 @@ WINGDIAPI BOOL WINAPI GetTextExtentExPointI(HDC, LPWORD, int, int, LPINT, LPINT,
 #if !defined (_WIN32_WCE)
 WINGDIAPI BOOL WINAPI GetTextExtentPoint32A(HDC,LPCSTR,int,LPSIZE);
 WINGDIAPI BOOL WINAPI GetTextExtentPoint32W( HDC,LPCWSTR,int,LPSIZE);
-#elif (_WIN32_WCE >= 0x200)
+#elif (_WIN32_WCE >= 0x0400)
 #define GetTextExtentPointW(hdc,cstr,len,size) GetTextExtentExPointW(hdc,cstr,len,0,NULL,NULL,size)
 #define GetTextExtentPoint32W GetTextExtentPointW
 #endif
@@ -3273,6 +3273,15 @@ typedef DISPLAY_DEVICEA DISPLAY_DEVICE, *PDISPLAY_DEVICE, *LPDISPLAY_DEVICE;
 #endif
 #endif /* UNICODE */
 #endif /* RC_INVOKED */
+/* Windows CE COREDLL exports (signatures from the Windows CE SDK
+ * wingdi.h). */
+#ifdef _WIN32_WCE
+WINGDIAPI BOOL WINAPI GetCharABCWidths(HDC,UINT,UINT,LPABC);
+WINGDIAPI BOOL WINAPI GetCharABCWidthsI(HDC,UINT,UINT,LPWORD,LPABC);
+WINGDIAPI BOOL WINAPI GetCharWidth32(HDC,UINT,UINT,LPINT);
+WINGDIAPI BOOL WINAPI TransparentImage(HDC,int,int,int,int,HANDLE,int,int,int,int,COLORREF);
+#endif /* _WIN32_WCE */
+
 #ifdef __cplusplus
 }
 #endif

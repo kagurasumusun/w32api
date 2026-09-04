@@ -26,16 +26,28 @@ extern "C" {
  */
 #endif
 
-#if defined(__CEGCC__) || defined(__MINGW32CE__)
+#if defined(__CEGCC__) || defined(__MINGW32CE__) || defined(_WIN32_WCE) || defined(UNDER_CE)
 #ifndef _WIN32_WCE
-#define _WIN32_WCE 0x0300
+#ifdef UNDER_CE
+/* Microsoft spell the two macros with different numerics
+   (UNDER_CE=420, _WIN32_WCE=0x420); presence comparisons work
+   either way, so derive one from the other. */
+#define _WIN32_WCE UNDER_CE
+#else
+#define _WIN32_WCE 0x0400
+#endif
+#endif
+#ifndef UNDER_CE
+/* Likewise let plain 'arm-wince-mingw32' Clang targets (which define
+   neither macro) work from a single -D_WIN32_WCE=0xNNN. */
+#define UNDER_CE _WIN32_WCE
+#endif
+#endif
 /*
- * If you need WinCE API features newer than WinCE 3.0 then you must
- * define _WIN32_WCE to the value required before including windows.h 
+ * If you need WinCE API features then you must
+ * define _WIN32_WCE to the value required before including windows.h
  * or any other method of including the windef.h header.
  */
-#endif
-#endif
 
 /*
  * Macro to deal with wide names - WinCE functions not receiving LPTSTR

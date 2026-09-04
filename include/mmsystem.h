@@ -1936,6 +1936,23 @@ typedef MCI_OVLY_SAVE_PARMSA MCI_OVLY_SAVE_PARMS,*PMCI_OVLY_SAVE_PARMS,*LPMCI_OV
 #define mciGetDeviceIDFromElementID mciGetDeviceIDFromElementIDA
 #define mciGetErrorString mciGetErrorStringA
 #endif
+/* Windows CE COREDLL exports (signatures from the Windows CE SDK
+ * mmsystem.h). */
+#ifdef _WIN32_WCE
+MMRESULT WINAPI mixerGetControlDetails(HMIXEROBJ hmxobj, LPMIXERCONTROLDETAILS pmxcd, DWORD fdwDetails);
+MMRESULT WINAPI mixerGetDevCaps(UINT uMxId, LPMIXERCAPS pmxcaps, UINT cbmxcaps);
+MMRESULT WINAPI mixerGetLineControls(HMIXEROBJ hmxobj, LPMIXERLINECONTROLS pmxlc, DWORD fdwControls);
+MMRESULT WINAPI mixerGetLineInfo(HMIXEROBJ hmxobj, LPMIXERLINE pmxl, DWORD fdwInfo);
+MMRESULT WINAPI waveInGetDevCaps(UINT uDeviceID, LPWAVEINCAPS pwic, UINT cbwic);
+MMRESULT WINAPI waveInGetErrorText(MMRESULT mmrError, LPTSTR pszText, UINT cchText);
+MMRESULT WINAPI waveInGetProperty(UINT uDeviceID, const GUID* pPropSetId, ULONG ulPropId, LPVOID pvPropParams, ULONG cbPropParams, LPVOID pvPropData, ULONG cbPropData, PULONG pcbReturn);
+MMRESULT WINAPI waveInSetProperty(UINT uDeviceID, const GUID* pPropSetId, ULONG ulPropId, LPVOID pvPropParams, ULONG cbPropParams, LPVOID pvPropData, ULONG cbPropData);
+MMRESULT WINAPI waveOutGetDevCaps(UINT uDeviceID, LPWAVEOUTCAPS pwoc, UINT cbwoc);
+MMRESULT WINAPI waveOutGetErrorText(MMRESULT mmrError, LPTSTR pszText, UINT cchText);
+MMRESULT WINAPI waveOutGetProperty(UINT uDeviceID, const GUID* pPropSetId, ULONG ulPropId, LPVOID pvPropParams, ULONG cbPropParams, LPVOID pvPropData, ULONG cbPropData, PULONG pcbReturn);
+MMRESULT WINAPI waveOutSetProperty(UINT uDeviceID, const GUID* pPropSetId, ULONG ulPropId, LPVOID pvPropParams, ULONG cbPropParams, LPVOID pvPropData, ULONG cbPropData);
+#endif /* _WIN32_WCE */
+
 #ifdef __cplusplus
 }
 #endif

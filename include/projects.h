@@ -15,7 +15,7 @@
 extern "C" {
 #endif
 
-#if _WIN32_WCE >= 300
+#if _WIN32_WCE >= 0x0400
 
 #include <windows.h>
 

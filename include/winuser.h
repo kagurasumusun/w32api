@@ -3801,6 +3801,13 @@ WINUSERAPI LONG WINAPI GetMessageTime(void);
 #if (_WIN32_WINNT >= 0x0500 || _WIN32_WINDOWS >= 0x0490)
 WINUSERAPI int WINAPI GetMouseMovePointsEx(UINT,LPMOUSEMOVEPOINT,LPMOUSEMOVEPOINT,int,DWORD);
 #endif
+#ifdef _WIN32_WCE
+/* COREDLL exports this CE stylus variant (coredll*.def); SDL 1.2.15's
+   windib GetLastStylusPos calls it directly.  Outside the version guard
+   above: _WIN32_WINNT/WINVER sit at 0x0400 here, so the guard would hide
+   it from the CE builds that need it. */
+WINUSERAPI BOOL WINAPI GetMouseMovePoints(LPPOINT,UINT,LPUINT);
+#endif
 WINUSERAPI HWND WINAPI GetNextDlgGroupItem(HWND,HWND,BOOL);
 WINUSERAPI HWND WINAPI GetNextDlgTabItem(HWND,HWND,BOOL);
 #define GetNextWindow(h,c) GetWindow(h,c)
@@ -4243,7 +4250,7 @@ BOOL WINAPI RegisterTouchWindow(HWND hWnd, ULONG ulFlags);
 BOOL WINAPI UnregisterTouchWindow(HWND hWnd);
 #endif
 
-#if (_WIN32_WCE >= 0x0200)
+#if (_WIN32_WCE >= 0x0400)
 WINUSERAPI void WINAPI SystemIdleTimerReset(void);
 #endif
 #ifdef UNICODE
@@ -4578,6 +4585,88 @@ typedef NONCLIENTMETRICSA NONCLIENTMETRICS,*LPNONCLIENTMETRICS;
 #endif /* NOGDI */
 #endif /* UNICODE */
 #endif /* RC_INVOKED */
+
+/* Windows CE COREDLL exports (signatures from the Windows CE SDK
+ * winuser.h). */
+#ifdef _WIN32_WCE
+WINUSERAPI BOOL WINAPI AllKeys(BOOL bAllKeys);
+BOOL WINAPI EnableHardwareKeyboard(BOOL fEnable);
+WINUSERAPI HANDLE WINAPI GetClipboardDataAlloc(UINT uFormat);
+DWORD WINAPI GetKeyboardStatus(VOID);
+WINUSERAPI DWORD WINAPI GetMessageQueueReadyTimeStamp(HWND hWnd);
+UINT WINAPI GetMessageSource(VOID);
+WINUSERAPI HCURSOR WINAPI LoadAnimatedCursor(HINSTANCE hInstance, DWORD ResourceId, int cFrames, int FrameTimeInterval);
+WINUSERAPI BOOL WINAPI PostKeybdMessage(HWND hwnd, UINT VKey, UINT KeyStateFlags, UINT cCharacters, UINT *pShiftStateBuffer, UINT *pCharacterBuffer);
+
+#if (_WIN32_WCE >= 0x0600)
+/* Touch gestures (CE 6.0 R3 / Compact 7, coredll6.def).  WM 6.5 TGF_*
+   bit values: GID_TO_TGF(id) == (1ULL << id). */
+#define WM_GESTURE              0x0119
+
+#define GID_BEGIN               1
+#define GID_END                 3
+#define GID_PAN                 8
+#define GID_ROTATE              9
+#define GID_SCROLL              12
+#define GID_HOLD                13
+#define GID_SELECT              14
+#define GID_DOUBLESELECT        15
+
+#define GID_TO_TGF(id)          (((ULONGLONG)1) << (id))
+#define TGF_GID_BEGIN           GID_TO_TGF(GID_BEGIN)
+#define TGF_GID_END             GID_TO_TGF(GID_END)
+#define TGF_GID_PAN             GID_TO_TGF(GID_PAN)
+#define TGF_GID_ROTATE          GID_TO_TGF(GID_ROTATE)
+#define TGF_GID_SCROLL          GID_TO_TGF(GID_SCROLL)
+#define TGF_GID_HOLD            GID_TO_TGF(GID_HOLD)
+#define TGF_GID_SELECT          GID_TO_TGF(GID_SELECT)
+#define TGF_GID_DOUBLESELECT    GID_TO_TGF(GID_DOUBLESELECT)
+#define TGF_GID_LAST            TGF_GID_DOUBLESELECT
+#define TGF_GID_MAX             (((ULONGLONG)1) << 63)
+#define TGF_GID_ALL             (~(ULONGLONG)0)
+
+#define TGF_SCOPE_WINDOW        0
+#define TGF_SCOPE_PROCESS       1
+
+#define GF_BEGIN                0x00000001
+#define GF_INERTIA              0x00000002
+#define GF_END                  0x00000004
+#define GF_SYMMETRIC            0x00000008
+
+DECLARE_HANDLE(HGESTUREINFO);
+
+typedef struct tagGESTUREINFO {
+    UINT cbSize;
+    DWORD dwFlags;
+    DWORD dwID;
+    HWND hwndTarget;
+    POINTS ptsLocation;
+    DWORD dwInstanceID;
+    DWORD dwSequenceID;
+    ULONGLONG ullArguments;
+    UINT cbExtraArguments;
+} GESTUREINFO, *PGESTUREINFO;
+
+typedef struct tagWAGINFO {
+    DWORD cbSize;
+    DWORD dwFlags;
+} WAGINFO, *PWAGINFO, *LPWAGINFO;
+
+BOOL WINAPI EnableGestures(HWND hwnd, ULONGLONG ullFlags, UINT uScope);
+BOOL WINAPI DisableGestures(HWND hwnd, ULONGLONG ullFlags, UINT uScope);
+BOOL WINAPI QueryGestures(HWND hwnd, UINT uScope, PULONGLONG pullFlags);
+BOOL WINAPI GetGestureInfo(HGESTUREINFO hGestureInfo, PGESTUREINFO pGestureInfo);
+BOOL WINAPI CloseGestureInfoHandle(HGESTUREINFO hGestureInfo);
+BOOL WINAPI GetGestureExtraArguments(HGESTUREINFO hGestureInfo,
+    UINT cbExtraArguments, PBYTE pExtraArguments);
+BOOL WINAPI RegisterGesture(LPCWSTR pszName, PDWORD pdwID);
+BOOL WINAPI RegisterDefaultGestureHandler(HWND hwnd, BOOL fRegister);
+BOOL WINAPI Gesture(HWND hwnd, const GESTUREINFO *pGestureInfo,
+    const BYTE *pExtraArguments);
+BOOL WINAPI SetWindowAutoGesture(HWND hwnd, LPCVOID pWAGInfo);
+BOOL WINAPI GetWindowAutoGesture(HWND hwnd, LPVOID pWAGInfo);
+#endif /* _WIN32_WCE >= 0x0600 */
+#endif /* _WIN32_WCE */
 
 #ifdef __cplusplus
 }

@@ -23,7 +23,14 @@
 #  define __int8 char
 # endif
 # ifndef __small
-#  define __small char
+/* 16-bit memory-model leftover; libc++ uses __small as an identifier
+   (the c++/v1/__functional/function.h small-buffer member), so under
+   clang the macro is not defined at all -- same exclusion as mingwrt
+   _mingw.h.  A windows.h-including C++ TU must be able to use the C++
+   standard library.  */
+#  if !defined(__clang__)
+#   define __small char
+#  endif
 # endif
 # ifndef __hyper
 #  define __hyper long long

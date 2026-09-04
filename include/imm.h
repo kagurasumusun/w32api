@@ -446,6 +446,67 @@ DWORD WINAPI ImmGetImeMenuItemsW(HIMC,DWORD,DWORD,LPIMEMENUITEMINFOW,LPIMEMENUIT
 #define ImmGetIMEFileName ImmGetIMEFileNameA
 #define ImmGetImeMenuItems ImmGetImeMenuItemsW
 #endif
+/* Windows CE COREDLL exports (signatures from the Windows CE SDK
+ * imm.h). */
+#ifdef _WIN32_WCE
+/* CE IME internals: the input context block (from the Windows CE SDK
+ * imm.h; LOGFONT/COMPOSITIONFORM/CANDIDATEFORM come from the regular
+ * windows headers). */
+typedef struct tagINPUTCONTEXT {
+  HWND hWnd;
+  BOOL fOpen;
+  DWORD fdwClient;
+  HWND hwndImeInUse;
+  POINT ptStatusWndPos;
+  POINT ptSoftKbdPos;
+  DWORD fdwConversion;
+  DWORD fdwSentence;
+  union {
+    LOGFONTA A;
+    LOGFONTW W;
+  } lfFont;
+  COMPOSITIONFORM cfCompForm;
+  CANDIDATEFORM cfCandForm[4];
+  HIMCC hCompStr;
+  HIMCC hCandInfo;
+  HIMCC hGuideLine;
+  HIMCC hPrivate;
+  DWORD dwNumMsgBuf;
+  HIMCC hMsgBuf;
+  DWORD fdwInit;
+  DWORD dwReserve[3];
+  UINT uSavedVKey;
+  BOOL fChgMsg;
+  DWORD fdwFlags;
+  DWORD fdw31Compat;
+  DWORD dwRefCount;
+  PVOID pImeModeSaver;
+  DWORD fdwDirty;
+} INPUTCONTEXT, *PINPUTCONTEXT, *NPINPUTCONTEXT, *LPINPUTCONTEXT;
+#define SIP_INPUT_EVERYTHING  0x00000000L
+#define SIP_INPUT_HALFWIDTH   0x00000001L
+#define SIP_INPUT_FULLWIDTH   0x00000002L
+#define SIP_INPUT_PASSWORD    0x00000020L
+BOOL WINAPI ImmActivateLayout(HKL hSelKL);
+BOOL WINAPI ImmAssociateContextEx(HWND, HIMC, DWORD);
+HIMCC WINAPI ImmCreateIMCC(DWORD);
+HIMCC WINAPI ImmDestroyIMCC(HIMCC);
+BOOL WINAPI ImmGenerateMessage(HIMC);
+BOOL WINAPI ImmGetHotKey(DWORD, LPUINT lpuModifiers, LPUINT lpuVKey, LPHKL);
+DWORD WINAPI ImmGetIMCCLockCount(HIMCC);
+DWORD WINAPI ImmGetIMCCSize(HIMCC);
+DWORD WINAPI ImmGetIMCLockCount(HIMC);
+LPINPUTCONTEXT WINAPI ImmLockIMC(HIMC);
+LPVOID WINAPI ImmLockIMCC(HIMCC);
+HIMCC WINAPI ImmReSizeIMCC(HIMCC, DWORD);
+LRESULT WINAPI ImmRequestMessageW(HIMC, WPARAM, LPARAM);
+BOOL WINAPI ImmSIPanelState(UINT dwCmd, LPVOID pValue);
+BOOL WINAPI ImmSendNotification(VOID);
+BOOL WINAPI ImmSetHotKey(DWORD, UINT, UINT, HKL);
+BOOL WINAPI ImmUnlockIMC(HIMC);
+BOOL WINAPI ImmUnlockIMCC(HIMCC);
+#endif /* _WIN32_WCE */
+
 #ifdef __cplusplus
 }
 #endif
