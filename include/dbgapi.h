@@ -24,9 +24,8 @@ extern "C" {
 
 #endif	/* _WIN32_WCE */
 
-/* Windows CE COREDLL exports (signatures from the Windows CE SDK
- * dbgapi.h). */
 #ifdef _WIN32_WCE
+/* CE debug-zone interface declarations. */
 typedef struct _DBGPARAM {
   WCHAR lpszName[32];
   WCHAR rglpszZones[16][32];
@@ -34,7 +33,7 @@ typedef struct _DBGPARAM {
 } DBGPARAM, *LPDBGPARAM;
 BOOL RegisterDbgZones(HMODULE hMod, LPDBGPARAM lpdbgparam);
 void WINAPI WriteDebugLED(WORD wIndex, DWORD dwPattern);
-#endif /* _WIN32_WCE */
+#endif
 
 #ifdef  __cplusplus
 }
