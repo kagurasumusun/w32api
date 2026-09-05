@@ -24,10 +24,10 @@
 
 #endif
 
-/* Windows CE COREDLL exports (signatures from the Windows CE SDK
- * devload.h). */
 #ifdef _WIN32_WCE
+/* Device-manager compatibility interface. */
 DWORD EnumPnpIds(LPTSTR PnpList, LPDWORD lpBuflen);
-DWORD GetDeviceKeys(LPCTSTR DevName, LPTSTR ActiveKey, LPDWORD lpActiveLen, LPTSTR DriverKey, LPDWORD lpDriverLen);
+DWORD GetDeviceKeys(LPCTSTR DevName, LPTSTR ActiveKey, LPDWORD lpActiveLen,
+                    LPTSTR DriverKey, LPDWORD lpDriverLen);
 HKEY OpenDeviceKey(LPCTSTR ActiveKey);
-#endif /* _WIN32_WCE */
+#endif
