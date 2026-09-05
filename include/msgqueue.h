@@ -57,12 +57,10 @@ BOOL WINAPI GetMsgQueueInfo(HANDLE hMsgQ, LPMSGQUEUEINFO lpInfo);
 }
 #endif
 
-
-/* Windows CE COREDLL exports (signatures from the Windows CE SDK
- * winbase.h / msgqueue.h). */
 #ifdef _WIN32_WCE
+/* Message-queue and device-notification compatibility interface. */
 HANDLE WINAPI OpenMsgQueue(HANDLE hSrcProc, HANDLE hMsgQ, LPMSGQUEUEOPTIONS lpOptions);
 HANDLE WINAPI RequestDeviceNotifications(const GUID *devclass, HANDLE hMsgQ, BOOL fAll);
 BOOL WINAPI StopDeviceNotifications(HANDLE h);
-#endif /* _WIN32_WCE */
+#endif
 #endif  /* _MSGQUEUE_H_ */
