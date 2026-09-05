@@ -169,6 +169,31 @@ typedef VALENTA VALENT,*PVALENT;
 #define RegUnLoadKey RegUnLoadKeyA
 #endif
 #endif
+/* Windows CE COREDLL exports (signatures from the Windows CE SDK
+ * winreg.h). */
+#ifdef _WIN32_WCE
+#define CE_REG_INFO_FLAG_TRUST_PROTECTED 0x1
+typedef struct _CE_REGISTRY_INFO {
+  DWORD cbSize;
+  HKEY hRootKey;
+  DWORD dwFlags;
+  WCHAR *pszFullKeyName;
+  LPDWORD pdwKeyNameLen;
+} CE_REGISTRY_INFO, *PCE_REGISTRY_INFO;
+typedef struct _REG_NOTIFY_INFORMATION {
+  DWORD NextEntryOffset;
+  DWORD Action;
+  DWORD RegNameLength;
+  WCHAR RegName[1];
+} REG_NOTIFY_INFORMATION, *PREG_NOTIFY_INFORMATION;
+WINADVAPI HANDLE APIENTRY CeFindFirstRegChange(HKEY hKey, BOOL bWatchSubTree, DWORD dwNotifyFilter);
+WINADVAPI LONG APIENTRY CeFindNextRegChange(HANDLE hChangeHandle);
+WINADVAPI BOOL APIENTRY CeFindCloseRegChange(HANDLE hChangeHandle);
+WINADVAPI LONG APIENTRY CeRegGetInfo(HKEY hKey, PCE_REGISTRY_INFO pInfo);
+WINADVAPI LONG APIENTRY CeRegGetNotificationInfo(HANDLE hChangeHandle, DWORD dwFlags, LPVOID lpBuffer, DWORD nBufferLength, LPDWORD lpBytesReturned, LPDWORD lpBytesAvailable);
+WINADVAPI LONG APIENTRY CeRegTestSetValueW(HKEY hKey, LPCWSTR lpValueName, DWORD dwType, CONST BYTE *lpOldData, DWORD cbOldData, CONST BYTE *lpNewData, DWORD cbNewData, DWORD dwFlags);
+#endif /* _WIN32_WCE */
+
 #ifdef __cplusplus
 }
 #endif

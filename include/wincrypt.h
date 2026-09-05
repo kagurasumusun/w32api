@@ -1316,6 +1316,15 @@ BOOL WINAPI CryptGetDefaultProviderW(DWORD,DWORD,DWORD,LPSTR,DWORD);
 #endif // !UNICODE
 
  
+
+#ifdef _WIN32_WCE
+/* COREDLL re-exports these two from coredll itself on CE.  */
+WINADVAPI BOOL WINAPI CryptSetProviderExW(LPCWSTR pszProvName, DWORD dwProvType,
+    DWORD *pdwReserved, DWORD dwFlags);
+WINADVAPI BOOL WINAPI CryptEnumProviderTypesW(DWORD dwIndex, DWORD *pdwReserved,
+    DWORD dwFlags, DWORD *pdwProvType, LPWSTR szTypeName, DWORD *pcbTypeName);
+#endif
+
 #ifdef __cplusplus
 }
 #endif

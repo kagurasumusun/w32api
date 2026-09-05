@@ -9,7 +9,7 @@
 extern "C" {
 #endif
 
-#if _WIN32_WCE >= 0x0200
+#if _WIN32_WCE >= 0x0400
 
 /*
  * Macros that should behave differently depending on production or debug build.
@@ -23,6 +23,17 @@ extern "C" {
 #define	ASSERT(x)		/* ?? */
 
 #endif	/* _WIN32_WCE */
+
+#ifdef _WIN32_WCE
+/* Debug-zone state and the corresponding kernel debug interfaces. */
+typedef struct _DBGPARAM {
+  WCHAR lpszName[32];
+  WCHAR rglpszZones[16][32];
+  ULONG ulZoneMask;
+} DBGPARAM, *LPDBGPARAM;
+BOOL RegisterDbgZones(HMODULE hMod, LPDBGPARAM lpdbgparam);
+void WINAPI WriteDebugLED(WORD wIndex, DWORD dwPattern);
+#endif /* _WIN32_WCE */
 
 #ifdef  __cplusplus
 }

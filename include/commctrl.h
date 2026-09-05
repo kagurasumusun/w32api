@@ -424,7 +424,7 @@ extern "C" {
 #define IPM_SETRANGE	(WM_USER+103)
 #define IPM_SETFOCUS	(WM_USER+104)
 #define IPM_ISBLANK	(WM_USER+105)
-#if (_WIN32_IE >= 0x0500) || (_WIN32_WCE >= 0x300)
+#if (_WIN32_IE >= 0x0500) || (_WIN32_WCE >= 0x0400)
 #define I_INDENTCALLBACK (-1)
 #define I_IMAGENONE (-2)
 #endif
@@ -939,7 +939,7 @@ extern "C" {
 #define LVS_OWNERDRAWFIXED	0x400
 #define LVS_NOCOLUMNHEADER	0x4000
 #define LVS_NOSORTHEADER	0x8000
-#if (_WIN32_IE >= 0x0300) || (_WIN32_WCE >= 0x300)
+#if (_WIN32_IE >= 0x0300) || (_WIN32_WCE >= 0x0400)
 #define CDIS_CHECKED 8
 #define CDIS_DEFAULT 32
 #define CDIS_DISABLED 4
@@ -1153,7 +1153,7 @@ extern "C" {
 #define LVCF_WIDTH	2
 #define LVCF_TEXT	4
 #define LVCF_SUBITEM	8
-#if (_WIN32_IE >= 0x0300) || (_WIN32_WCE >= 0x200)
+#if (_WIN32_IE >= 0x0300) || (_WIN32_WCE >= 0x0400)
 #define LVCF_IMAGE 16
 #define LVCF_ORDER 32
 #endif
@@ -1201,7 +1201,7 @@ extern "C" {
 #define LVM_GETITEMSPACING	(LVM_FIRST+51)
 #define LVM_GETISEARCHSTRINGA	(LVM_FIRST+52)
 #define LVM_GETISEARCHSTRINGW	(LVM_FIRST+117)
-#if (_WIN32_IE >= 0x0300) || (_WIN32_WCE >= 0x300)
+#if (_WIN32_IE >= 0x0300) || (_WIN32_WCE >= 0x0400)
 #define LVM_APPROXIMATEVIEWRECT (LVM_FIRST+64)
 #define LVM_SETEXTENDEDLISTVIEWSTYLE (LVM_FIRST+54)
 #define LVM_GETEXTENDEDLISTVIEWSTYLE (LVM_FIRST+55)
@@ -2515,7 +2515,7 @@ typedef struct _LVCOLUMNW {
 	LPWSTR pszText;
 	int cchTextMax;
 	int iSubItem;
-#if (_WIN32_IE >= 0x0300) || (_WIN32_WCE >= 0x200)
+#if (_WIN32_IE >= 0x0300) || (_WIN32_WCE >= 0x0400)
 	int iImage;
 	int iOrder;
 #endif
@@ -2781,7 +2781,7 @@ typedef struct _TC_KEYDOWN {
 	WORD wVKey;
 	UINT flags;
 } TC_KEYDOWN;
-#if (_WIN32_IE >= 0x0300) || (_WIN32_WCE >= 0x200)
+#if (_WIN32_IE >= 0x0300) || (_WIN32_WCE >= 0x0400)
 typedef struct tagINITCOMMONCONTROLSEX {
 	DWORD dwSize;
 	DWORD dwICC;
@@ -2871,7 +2871,7 @@ typedef REBARBANDINFOA const *LPCREBARBANDINFOA;
 typedef REBARBANDINFOW const *LPCREBARBANDINFOW;
 #define REBARBANDINFOA_V3_SIZE CCSIZEOF_STRUCT(REBARBANDINFOA,wID)
 #define REBARBANDINFOW_V3_SIZE CCSIZEOF_STRUCT(REBARBANDINFOW, wID)
-#if (_WIN32_IE >= 0x0300) || (_WIN32_WCE >= 0x0200)
+#if (_WIN32_IE >= 0x0300) || (_WIN32_WCE >= 0x0400)
 typedef struct tagNMLVODSTATECHANGE {
   NMHDR hdr;
   int iFrom;
@@ -2900,7 +2900,7 @@ typedef struct tagIMAGELISTDRAWPARAMS {
 	COLORREF crEffect;
 #endif
 } IMAGELISTDRAWPARAMS,*LPIMAGELISTDRAWPARAMS;
-#endif /* (_WIN32_IE >= 0x0300) || (_WIN32_WCE >= 0x0200) */
+#endif /* (_WIN32_IE >= 0x0300) || (_WIN32_WCE >= 0x0400) */
 #if (_WIN32_IE >= 0x0400)
 typedef struct tagNMREBARCHILDSIZE {
 	NMHDR hdr;
@@ -3023,22 +3023,50 @@ LANGID WINAPI GetMUILanguage(VOID);
 #define Header_GetUnicodeFormat(w) (BOOL)SNDMSG((w),HDM_GETUNICODEFORMAT,0,0)
 #define Header_SetUnicodeFormat(w,f) (BOOL)SNDMSG((w),HDM_SETUNICODEFORMAT,(WPARAM)(f),0)
 #endif
+#if !defined(_WIN32_WCE) || (_WIN32_WCE >= 0x500)
+/* On Windows CE the DPA_/DSA_ helpers live in COREDLL and are exported
+   since CE 5.0 only (they are absent from the CE 4.x surface), so
+   the whole group is version-gated there.  DPA_Clone, DPA_CreateEx,
+   DPA_DeleteAllPtrs, DPA_DeletePtr, DPA_GetPtrIndex, DPA_Search,
+   DSA_Grow, DSA_SetRange and DSA_Sort are NONAME (ordinal-only) exports
+   on CE and the CE SDK headers do not declare them (they are internal to
+   COREDLL); the matching libcoredll*.a import libraries do expose them
+   by ordinal (Name @n NONAME), so code that declares them itself can
+   link against them.  They are declared below for desktop comctl32
+   only. */
 HDSA WINAPI DSA_Create(INT,INT);
 BOOL WINAPI DSA_Destroy(HDSA);
 VOID WINAPI DSA_DestroyCallback(HDSA,PFNDSAENUMCALLBACK,PVOID);
 PVOID WINAPI DSA_GetItemPtr(HDSA,INT);
 INT WINAPI DSA_InsertItem(HDSA,INT,PVOID);
+HDSA WINAPI DSA_Clone(HDSA);
+BOOL WINAPI DSA_DeleteAllItems(HDSA);
+INT WINAPI DSA_DeleteItem(HDSA,INT);
+BOOL WINAPI DSA_GetItem(HDSA,INT,PVOID);
+BOOL WINAPI DSA_SetItem(HDSA,INT,PVOID);
+VOID WINAPI DSA_EnumCallback(HDSA,PFNDSAENUMCALLBACK,PVOID);
+#ifndef _WIN32_WCE
+BOOL WINAPI DSA_Sort(HDSA,PFNDPACOMPARE,LPARAM);
+#endif
+INT WINAPI DSA_Search(HDSA,PVOID,INT,PFNDPACOMPARE,LPARAM,UINT);
 HDPA WINAPI DPA_Create(INT);
 BOOL WINAPI DPA_Destroy(HDPA);
-PVOID WINAPI DPA_DeletePtr(HDPA,INT);
-BOOL WINAPI DPA_DeleteAllPtrs(HDPA);
 VOID WINAPI DPA_EnumCallback(HDPA,PFNDPAENUMCALLBACK,PVOID);
 VOID WINAPI DPA_DestroyCallback(HDPA,PFNDPAENUMCALLBACK,PVOID);
 BOOL WINAPI DPA_SetPtr(HDPA,INT,PVOID);
 INT WINAPI DPA_InsertPtr(HDPA,INT,PVOID);
 PVOID WINAPI DPA_GetPtr(HDPA,INT_PTR);
 BOOL WINAPI DPA_Sort(HDPA,PFNDPACOMPARE,LPARAM);
+BOOL WINAPI DPA_Grow(HDPA,INT);
+#ifndef _WIN32_WCE
+PVOID WINAPI DPA_DeletePtr(HDPA,INT);
+BOOL WINAPI DPA_DeleteAllPtrs(HDPA);
 INT WINAPI DPA_Search(HDPA,PVOID,INT,PFNDPACOMPARE,LPARAM,UINT);
+HDPA WINAPI DPA_Clone(HDPA,HDPA);
+HDPA WINAPI DPA_CreateEx(INT,HANDLE);
+INT WINAPI DPA_GetPtrIndex(HDPA,PVOID);
+#endif
+#endif /* !_WIN32_WCE || _WIN32_WCE >= 0x500 */
 BOOL WINAPI Str_SetPtrW(LPWSTR*,LPCWSTR);
 #if (_WIN32_IE >= 0x0400)
 BOOL WINAPI FlatSB_EnableScrollBar(HWND,INT,UINT);
@@ -3103,11 +3131,11 @@ BOOL WINAPI ImageList_SetOverlayImage(HIMAGELIST,int,int);
 HIMAGELIST WINAPI ImageList_Read(LPSTREAM);
 BOOL WINAPI ImageList_Write(HIMAGELIST,LPSTREAM);
 #endif
-#if (_WIN32_IE >= 0x0400) || (_WIN32_WCE >= 0x0200)
+#if (_WIN32_IE >= 0x0400) || (_WIN32_WCE >= 0x0400)
 HIMAGELIST WINAPI ImageList_Duplicate(HIMAGELIST himl);
 #endif
 void WINAPI InitCommonControls(void);
-#if (_WIN32_IE >= 0x0300) || (_WIN32_WCE >= 0x200)
+#if (_WIN32_IE >= 0x0300) || (_WIN32_WCE >= 0x0400)
 BOOL WINAPI InitCommonControlsEx(LPINITCOMMONCONTROLSEX);
 #endif
 #if (_WIN32_IE >= 0x0500)
@@ -3318,7 +3346,7 @@ BOOL WINAPI _TrackMouseEvent(LPTRACKMOUSEEVENT);
 #define TreeView_SortChildrenCB(w,s,r) (BOOL)SNDMSG((w),TVM_SORTCHILDRENCB,r,(LPARAM)(LPTVSORTCB)(s))
 #define TreeView_EndEditLabelNow(w,f) (BOOL)SNDMSG((w),TVM_ENDEDITLABELNOW,f,0)
 #define TreeView_GetISearchString(w,s) (BOOL)SNDMSG((w),TVM_GETISEARCHSTRING,0,(LPARAM)s)
-#if (_WIN32_IE >= 0x0300) || (_WIN32_WCE >= 0x300)
+#if (_WIN32_IE >= 0x0300) || (_WIN32_WCE >= 0x0400)
 #define ListView_ApproximateViewRect(w,iw,ih,i) (DWORD)SNDMSG((w),LVM_APPROXIMATEVIEWRECT,(i),MAKELPARAM((iw),(ih)))
 #define ListView_SetExtendedListViewStyle(w,s) (DWORD)SNDMSG((w),LVM_SETEXTENDEDLISTVIEWSTYLE,0,(s))
 #define ListView_GetExtendedListViewStyle(w) (DWORD)SNDMSG((w),LVM_GETEXTENDEDLISTVIEWSTYLE,0,0)
@@ -3338,7 +3366,7 @@ BOOL WINAPI _TrackMouseEvent(LPTRACKMOUSEEVENT);
 #define ListView_SubItemHitTest(w,p) (INT)SNDMSG((w),LVM_SUBITEMHITTEST,0,(LPARAM)(LPLVHITTESTINFO)(p))
 #define ListView_SetItemCountEx(w,i,f) (void)SNDMSG((w),LVM_SETITEMCOUNT,(WPARAM)(i),(LPARAM)(f))
 #endif
-#if (_WIN32_IE >= 0x0300) || (_WIN32_WCE >= 0x200)
+#if (_WIN32_IE >= 0x0300) || (_WIN32_WCE >= 0x0400)
 WINBOOL WINAPI ImageList_SetImageCount(HIMAGELIST,UINT);
 WINBOOL WINAPI ImageList_Copy(HIMAGELIST,int,HIMAGELIST,int,UINT);
 WINBOOL WINAPI ImageList_DrawIndirect(IMAGELISTDRAWPARAMS*);
@@ -3755,7 +3783,7 @@ typedef REBARBANDINFOA REBARBANDINFO,*LPREBARBANDINFO;
 #define RB_SETBANDINFO RB_SETBANDINFOA
 #endif
 
-#if (_WIN32_WCE >= 0x200)
+#if (_WIN32_WCE >= 0x0400)
 
 #define CMDBAR_HELP 0x000B
 #define CMDBAR_OK 0xF000
@@ -3767,7 +3795,7 @@ typedef struct tagCOMMANDBANDSRESTOREINFO {
 	UINT cxRestored;
 	BOOL fMaximized;
 } COMMANDBANDSRESTOREINFO, *LPCOMMANDBANDSRESTOREINFO;
-#endif /* _WIN32_WCE >= 0x200 */
+#endif /* _WIN32_WCE >= 0x0400 */
 
 #endif /* RC_INVOKED */
 
@@ -3797,7 +3825,7 @@ COMMCTRLAPI int WINAPI CommandBar_Height(HWND hwndCB);
 
 #endif /* _WIN32_WCE */
 
-#if (_WIN32_WCE >= 0x0200)
+#if (_WIN32_WCE >= 0x0400)
 
 COMMCTRLAPI BOOL WINAPI CommandBands_AddAdornments(HWND,HINSTANCE,DWORD,LPREBARBANDINFO);
 COMMCTRLAPI BOOL WINAPI CommandBands_AddBands(HWND,HINSTANCE,UINT,LPREBARBANDINFO);
@@ -3808,7 +3836,7 @@ COMMCTRLAPI BOOL WINAPI CommandBands_Show(HWND,BOOL);
 
 #define CommandBands_Height(hwnd) ((UINT)SendMessage((hwnd),RB_GETBARHEIGHT,0,0))
 
-#endif /* _WIN32_WCE >= 0x200 */
+#endif /* _WIN32_WCE >= 0x0400 */
 
 #ifdef __cplusplus
 }

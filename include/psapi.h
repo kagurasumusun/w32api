@@ -129,6 +129,11 @@ DWORD WINAPI GetProcessImageFileNameW(HANDLE,LPWSTR,DWORD);
 #endif
 #endif
 
+
+#ifdef _WIN32_WCE
+BOOL WINAPI CeSetProcessVersion(HANDLE hProcess, DWORD dwVersion);
+#endif
+
 #ifdef __cplusplus
 }
 #endif

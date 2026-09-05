@@ -990,6 +990,35 @@ VOID APIENTRY RasFreeEapUserIdentityA (LPRASEAPUSERIDENTITYA);
 #endif /* (WINVER >= 0x500) */
 #endif /* ! UNICODE */
 
+/* Windows CE COREDLL exports (signatures from the Windows CE SDK
+ * ras.h). */
+#ifdef _WIN32_WCE
+#if !defined(TAPI_H) && !defined(_TAPI_H) && !defined(_VARSTRING_DEFINED_)
+/* CE RAS borrows TAPI's VARSTRING for device-config blobs.  Same struct
+   tag as tapi.h (varstring_tag) and guarded by the same
+   _VARSTRING_DEFINED_ marker, so including ras.h and tapi.h in either
+   order defines VARSTRING exactly once. */
+#define _VARSTRING_DEFINED_
+typedef struct varstring_tag {
+  DWORD dwTotalSize;
+  DWORD dwNeededSize;
+  DWORD dwUsedSize;
+  DWORD dwStringFormat;
+  DWORD dwStringSize;
+  DWORD dwStringOffset;
+} VARSTRING, *LPVARSTRING;
+#endif
+DWORD APIENTRY RasDevConfigDialogEditW(LPCWSTR szDeviceName, LPCWSTR szDeviceType, HWND hWndOwner, LPVOID lpDeviceConfigIn, DWORD dwSize, LPVARSTRING lpDeviceConfigOut);
+DWORD APIENTRY RasGetDispPhoneNumW(LPCWSTR szPhonebook, LPCWSTR szEntry, LPWSTR szPhoneNum, DWORD dwPhoneNumLen);
+DWORD RasGetEapConnectionData(LPCTSTR pszPhonebook, LPCTSTR pszEntry, PBYTE pbEapData, PDWORD pdwSizeofEapData);
+DWORD RasGetEapUserData(HANDLE hToken, LPCTSTR pszPhonebook, LPCTSTR pszEntry, PBYTE pbEapData, PDWORD pdwSizeofEapData);
+DWORD WINAPI RasGetEntryDevConfig(LPCTSTR szPhonebook, LPCTSTR szEntry, LPDWORD pdwDeviceID, LPDWORD pdwSize, LPVARSTRING pDeviceConfig);
+DWORD APIENTRY RasIOControl(LPVOID hRasConn, DWORD dwCode, PBYTE pBufIn, DWORD dwLenIn, PBYTE pBufOut, DWORD dwLenOut, PDWORD pdwActualOut);
+DWORD RasSetEapConnectionData(LPCTSTR pszPhonebook, LPCTSTR pszEntry, PBYTE pbEapData, DWORD dwSizeofEapData);
+DWORD RasSetEapUserData(HANDLE hToken, LPCTSTR pszPhonebook, LPCTSTR pszEntry, PBYTE pbEapData, DWORD dwSizeofEapData);
+DWORD WINAPI RasSetEntryDevConfig(LPCTSTR szPhonebook, LPCTSTR szEntry, DWORD dwDeviceID, LPVARSTRING lpDeviceConfig);
+#endif /* _WIN32_WCE */
+
 #ifdef __cplusplus
 }
 #endif

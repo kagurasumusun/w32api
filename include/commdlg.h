@@ -252,7 +252,7 @@ typedef struct tagCHOOSECOLORA {
 typedef struct tagCHOOSECOLORW {
 	DWORD	lStructSize;
 	HWND	hwndOwner;
-#if (_WIN32_WCE >= 0x0200)
+#if (_WIN32_WCE >= 0x0400)
 	HINSTANCE	hInstance;
 #else
 	HWND	hInstance;

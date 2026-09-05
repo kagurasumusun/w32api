@@ -8,7 +8,7 @@
 extern "C" {
 #endif
 
-#if _WIN32_WCE >= 0x0201
+#if _WIN32_WCE >= 0x0400
 
 /*
  * Query the SIP state
@@ -53,7 +53,15 @@ BOOL WINAPI SipShowIM(DWORD);
 BOOL WINAPI SipGetCurrentIM(CLSID *);
 BOOL WINAPI SipSetCurrentIM(CLSID *);
 
-#endif	/* _WIN32_WCE >= 0x0201 */
+#endif	/* _WIN32_WCE >= 0x0400 */
+
+/* Windows CE COREDLL exports (signatures from the Windows CE SDK
+ * sipapi.h). */
+#ifdef _WIN32_WCE
+BOOL WINAPI SipRegisterNotification(HWND);
+BOOL WINAPI SipSetDefaultRect(RECT *);
+DWORD WINAPI SipStatus(VOID);
+#endif /* _WIN32_WCE */
 
 #ifdef __cplusplus
 }

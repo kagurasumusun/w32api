@@ -23,3 +23,10 @@
 #define DEVLOAD_DEVKEY_VALNAME L"Key"
 
 #endif
+
+/* Device-manager interfaces exported by the CE runtime. */
+#ifdef _WIN32_WCE
+DWORD EnumPnpIds(LPTSTR PnpList, LPDWORD lpBuflen);
+DWORD GetDeviceKeys(LPCTSTR DevName, LPTSTR ActiveKey, LPDWORD lpActiveLen, LPTSTR DriverKey, LPDWORD lpDriverLen);
+HKEY OpenDeviceKey(LPCTSTR ActiveKey);
+#endif /* _WIN32_WCE */

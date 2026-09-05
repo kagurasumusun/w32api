@@ -19,7 +19,7 @@
 extern "C" {
 #endif
 
-#if defined(_WIN32_WCE) && (_WIN32_WCE >= 400)
+#if defined(_WIN32_WCE) && (_WIN32_WCE >= 0x0400)
 typedef struct ServiceEnumInfo {
   WCHAR szPrefix[6];
   WCHAR szDllName;
@@ -52,6 +52,14 @@ BOOL ServiceIoControl (HANDLE hService, DWORD dwIoControlCode, LPVOID lpInBuf,
 BOOL ServiceUnbindPorts (HANDLE hService);
 
 #endif	/* _WIN32_WCE */
+
+/* Windows CE COREDLL exports (signatures from the Windows CE SDK
+ * service.h). */
+#ifdef _WIN32_WCE
+/* CloseAllServiceHandles: exported but undocumented; left undeclared. */
+HANDLE CreateServiceHandle(LPCWSTR lpNew, DWORD dwAccess, DWORD dwShareMode, HANDLE hProc);
+BOOL GetServiceByIndex(DWORD dwIndex, LPWIN32_FIND_DATA lpFindFileData);
+#endif /* _WIN32_WCE */
 
 #ifdef __cplusplus
 }

@@ -1330,7 +1330,12 @@ WINBASEAPI LONG WINAPI _llseek(HFILE,LONG,int);
 WINBASEAPI HFILE WINAPI _lopen(LPCSTR,int);
 WINBASEAPI UINT WINAPI _lread(HFILE,LPVOID,UINT);
 WINBASEAPI UINT WINAPI _lwrite(HFILE,LPCSTR,UINT);
-#define AbnormalTermination() FALSE
+/* "AbnormalTermination() == FALSE" stub removed: this toolchain's clang
+   supports __try/__finally, and excpt.h now maps AbnormalTermination to
+   the real _abnormal_termination builtin.  A FALSE stub here would
+   redefine (and silently break) it for anyone including windows.h, as
+   winbase.h precedes excpt.h in windows.h.  MSVC's winbase.h has no
+   such define. */
 WINBASEAPI BOOL WINAPI AccessCheck(PSECURITY_DESCRIPTOR,HANDLE,DWORD,PGENERIC_MAPPING,PPRIVILEGE_SET,PDWORD,PDWORD,PBOOL);
 WINBASEAPI BOOL WINAPI AccessCheckAndAuditAlarmA(LPCSTR,LPVOID,LPSTR,LPSTR,PSECURITY_DESCRIPTOR,DWORD,PGENERIC_MAPPING,BOOL,PDWORD,PBOOL,PBOOL);
 WINBASEAPI BOOL WINAPI AccessCheckAndAuditAlarmW(LPCWSTR,LPVOID,LPWSTR,LPWSTR,PSECURITY_DESCRIPTOR,DWORD,PGENERIC_MAPPING,BOOL,PDWORD,PBOOL,PBOOL);
@@ -1350,7 +1355,7 @@ WINBASEAPI BOOL WINAPI AddAuditAccessAce(PACL,DWORD,DWORD,PSID,BOOL,BOOL);
 #if (_WIN32_WINNT >= 0x0501)
 WINBASEAPI void WINAPI AddRefActCtx(HANDLE);
 #endif
-#if (_WIN32_WINNT >= 0x0500)
+#if (_WIN32_WINNT >= 0x0500) || (_WIN32_WCE >= 0x0600)
 WINBASEAPI PVOID WINAPI AddVectoredExceptionHandler(ULONG,PVECTORED_EXCEPTION_HANDLER);
 #endif
 WINBASEAPI BOOL WINAPI AdjustTokenGroups(HANDLE,BOOL,PTOKEN_GROUPS,DWORD,PTOKEN_GROUPS,PDWORD);
@@ -1712,6 +1717,7 @@ WINBASEAPI BOOL WINAPI GetFileInformationByHandle(HANDLE,LPBY_HANDLE_FILE_INFORM
 #if (_WIN32_WINNT >= 0x0600)
 /* http://msdn.microsoft.com/en-us/library/aa364953%28VS.85%29.aspx */
 WINBASEAPI BOOL WINAPI GetFileInformationByHandleEx(HANDLE,FILE_INFO_BY_HANDLE_CLASS,LPVOID,DWORD);
+WINBASEAPI BOOL WINAPI SetFileInformationByHandle(HANDLE,FILE_INFO_BY_HANDLE_CLASS,LPVOID,DWORD);
 #endif
 WINBASEAPI BOOL WINAPI GetFileSecurityA(LPCSTR,SECURITY_INFORMATION,PSECURITY_DESCRIPTOR,DWORD,PDWORD);
 WINBASEAPI BOOL WINAPI GetFileSecurityW(LPCWSTR,SECURITY_INFORMATION,PSECURITY_DESCRIPTOR,DWORD,PDWORD);
@@ -1772,10 +1778,15 @@ WINBASEAPI DWORD WINAPI GetPrivateProfileStringW(LPCWSTR,LPCWSTR,LPCWSTR,LPWSTR,
 WINBASEAPI BOOL WINAPI GetPrivateProfileStructA(LPCSTR,LPCSTR,LPVOID,UINT,LPCSTR);
 WINBASEAPI BOOL WINAPI GetPrivateProfileStructW(LPCWSTR,LPCWSTR,LPVOID,UINT,LPCWSTR);
 #ifdef _WIN32_WCE
-#if (_WIN32_WCE >= 0x300)
+#if (_WIN32_WCE >= 0x0400)
 WINBASEAPI FARPROC WINAPI GetProcAddressA(HINSTANCE,LPCSTR);
 #endif
 WINBASEAPI FARPROC WINAPI GetProcAddressW(HINSTANCE,LPCWSTR);
+/* What the real CE SDK does (winbase.h, Pocket PC 2003 and WM6 alike):
+   COREDLL exports only the A/W spellings, and the plain name is mapped
+   to the W one, so portable narrow-string callers fail to compile
+   instead of silently resolving to a NULL-returning shim. */
+#define GetProcAddress GetProcAddressW
 #else
 WINBASEAPI FARPROC WINAPI GetProcAddress(HINSTANCE,LPCSTR);
 #endif
@@ -2168,7 +2179,7 @@ WINBASEAPI BOOL WINAPI ReleaseMutex(HANDLE);
 WINBASEAPI BOOL WINAPI ReleaseSemaphore(HANDLE,LONG,LPLONG);
 WINBASEAPI BOOL WINAPI RemoveDirectoryA(LPCSTR);
 WINBASEAPI BOOL WINAPI RemoveDirectoryW(LPCWSTR);
-#if (_WIN32_WINNT >= 0x0500)
+#if (_WIN32_WINNT >= 0x0500) || (_WIN32_WCE >= 0x0600)
 WINBASEAPI ULONG WINAPI RemoveVectoredExceptionHandler(PVOID);
 #endif
 #if (_WIN32_WINNT >= 0x0502)
@@ -2383,7 +2394,7 @@ typedef struct STORE_INFORMATION {
 WINBASEAPI BOOL GetStoreInformation(LPSTORE_INFORMATION lpsi);
 #endif
 
-#if (_WIN32_WCE >= 0x300)
+#if (_WIN32_WCE >= 0x0400)
 WINBASEAPI BOOL CeSetThreadQuantum(HANDLE hThread, DWORD dwTime);
 #endif
 
@@ -2829,6 +2840,50 @@ WINBASEAPI HANDLE WINAPI ActivateDeviceEx(LPCWSTR, LPCVOID, DWORD, LPVOID);
 WINBASEAPI BOOL WINAPI DeactivateDevice(HANDLE);
 WINBASEAPI BOOL DeregisterDevice(HANDLE);
 WINBASEAPI HANDLE RegisterDevice(LPCWSTR, DWORD, LPCWSTR, DWORD);
+#endif /* _WIN32_WCE */
+
+/* Windows CE COREDLL exports (signatures from the Windows CE SDK
+ * winbase.h). */
+#ifdef _WIN32_WCE
+/* CE heap extension: heap with custom allocator/deallocator. */
+typedef LPVOID (*PFN_AllocHeapMem)(LPVOID pAddr, DWORD cbSize, DWORD fdwAction, LPDWORD pdwUserData);
+typedef BOOL (*PFN_FreeHeapMem)(LPVOID pAddr, DWORD cbSize, DWORD fdwAction, DWORD dwUserData);
+BOOL AdvertiseInterface(const GUID *devclass, LPCWSTR name, BOOL fAdd);
+void WINAPI BatteryNotifyOfTimeChange(BOOL fForward, FILETIME *pftDelta);
+DWORD WINAPI CeCertVerify(HANDLE hFile, HANDLE * phHandle, LPCWSTR pszFileName, LPWSTR pszAccountName, DWORD cbAccountNameSize, DWORD dwFlags);
+WINBASEAPI BOOL CeFsIoControlW(LPCWSTR pszRootPath, DWORD dwIoctl, LPVOID lpInBuf, DWORD nInBufSize, LPVOID lpOutBuf, DWORD nOutBufSize, LPDWORD lpBytesReturned, LPOVERLAPPED lpOverlapped);
+BOOL CeGenRandom(DWORD dwLen, PBYTE pbBuffer);
+WINBASEAPI DWORD WINAPI CeGetCanonicalPathNameW(LPCWSTR lpPathName, LPWSTR lpCanonicalPathName, DWORD cchCanonicalPathName, DWORD dwReserved);
+WINBASEAPI BOOL WINAPI CeGetFileNotificationInfo(HANDLE hChangeHandle, DWORD dwFlags, LPVOID lpBuffer, DWORD nBufferLength, LPDWORD lpBytesReturned, LPDWORD lpBytesAvailable);
+WINBASEAPI DWORD WINAPI CeGetThreadQuantum(HANDLE hThread);
+HANDLE WINAPI CeHeapCreate(DWORD flOptions, DWORD dwInitialSize, DWORD dwMaximumSize, PFN_AllocHeapMem pfnAlloc, PFN_FreeHeapMem pfnFree);
+BOOL CeResyncFilesys(HANDLE hDevice);
+WINBASEAPI LPVOID WINAPI CeZeroPointer(LPVOID ptr);
+BOOL CheckPassword(LPWSTR lpszPassword);
+WINBASEAPI BOOL WINAPI DeleteAndRenameFile(LPCWSTR lpOldFileName, LPCWSTR lpNewFileName);
+VOID GetCurrentFT(LPFILETIME lpFileTime);
+WINBASEAPI DWORD WINAPI GetIdleTime(VOID);
+LPVOID WINAPI HeapAllocTrace(HANDLE hHeap, DWORD dwFlags, DWORD dwBytes, DWORD dwLineNum, PCHAR szFilename);
+WINBASEAPI LONG WINAPI InterlockedTestExchange(LPLONG Target, LONG oldValue, LONG newValue); /* COREDLL export on non-x86/PPC */
+BOOL LoadFSD(HANDLE hDevice, LPCWSTR lpFSDName);
+BOOL LoadFSDEx(HANDLE hDevice, LPCWSTR lpFSDName, DWORD dwFlag);
+HLOCAL WINAPI LocalAllocTrace(UINT fuFlags, UINT cbBytes, UINT cLineNum, PCHAR szFilename);
+BOOL WINAPI LockEventLog(HANDLE hEventLog);
+WINBASEAPI BOOL WINAPI QueryInstructionSet(DWORD dwInstructionSet, LPDWORD lpdwCurrentInstructionSet);
+DWORD WINAPI Random(void); /* also exported by FILESYS; ce: random() seed provider */
+BOOL WINAPI ReadEventLogRaw(HANDLE hEventLog, BYTE *pReadBuffer, DWORD dwReadBufferSize, DWORD *pdwBytesRead);
+HKEY RegOpenProcessKey(DWORD hPnp);
+HANDLE RequestDeviceNotifications(const GUID *devclass, HANDLE hMsgQ, BOOL fAll);
+BOOL ResourceCreateList(DWORD dwResId, DWORD dwMinimum, DWORD dwCount);
+BOOL ResourceDestroyList(DWORD dwResId);
+BOOL ResourceMarkAsShareable(DWORD dwResId, DWORD dwId, DWORD dwLen, BOOL fShareable);
+BOOL ResourceRelease(DWORD dwResId, DWORD dwId, DWORD dwLen);
+BOOL ResourceRequest(DWORD dwResId, DWORD dwId, DWORD dwLen);
+BOOL ResourceRequestEx(DWORD dwResId, DWORD dwId, DWORD dwLen, DWORD dwFlags);
+void WINAPI SetDaylightTime(DWORD dst);
+VOID SignalStarted(DWORD dw);
+BOOL StopDeviceNotifications(HANDLE h);
+BOOL WINAPI UnLockEventLog(HANDLE hEventLog);
 #endif /* _WIN32_WCE */
 
 #ifdef __cplusplus

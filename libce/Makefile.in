@@ -13,7 +13,11 @@
 SHELL = @SHELL@
 
 srcdir = @srcdir@
-VPATH = @srcdir@
+# The shared, target-independent object sources (the *-uuid.c GUID tables,
+# largeint.c, ws2_32.c, shell32.c, test.c and res.rc) are unified into lib/.
+# They are not duplicated here: VPATH makes libce/ build them from ../lib,
+# while libce/ keeps only the CE-pertinent files (.def import libraries).
+VPATH = @srcdir@ @srcdir@/../lib
 
 SUBDIRS := 
 subdirs := 
@@ -116,6 +120,17 @@ FLAGS_TO_PASS = \
 # headers
 
 HEADERS = $(notdir $(wildcard $(srcdir)/../include/*.h))
+# HEADER_DIRS is every subdirectory of include/ (GL, ddk, directx,
+# gdiplus, EGL, GLES2, ...), discovered rather than listed one by one.
+# The install and dist rules below used to enumerate the families by hand
+# and so silently dropped every subdirectory they did not name: for this
+# file that was ddk/ (79 headers), directx/ (5) and gdiplus/ (26), and the
+# EGL/ and GLES2/ families imported for CE 6.0's OpenGL ES support would
+# have been dropped too.  With this, a new header family is installed
+# without a Makefile change.
+HEADER_DIRS = $(notdir $(patsubst %/,%,$(dir $(wildcard $(srcdir)/../include/*/))))
+# Kept defined for out-of-tree callers; the GL family is now installed
+# by the HEADER_DIRS loop below.
 GL_HEADERS = $(notdir $(wildcard $(srcdir)/../include/GL/*.h))
 
 # libraries
@@ -156,7 +171,7 @@ all: $(EXTRA_OBJS) $(LIBS)
 	done
 
 TEST_OPTIONS = $(ALL_CFLAGS) -DWINVER=0x0666  \
-	-Wall -pedantic -Wsystem-headers -c $(srcdir)/test.c -o test.o
+	-Wall -pedantic -Wsystem-headers -c $(srcdir)/../lib/test.c -o test.o
 .PHONY: test
 test:
 	@echo "Testing w32api..."
@@ -167,9 +182,9 @@ test:
 		$(CC) -x$$lang -DUNICODE $(TEST_OPTIONS) ; \
 	done
 	@echo "windres..."
-	@$(WINDRES) --include-dir $(INCDIR) -i $(srcdir)/res.rc -o test.o
+	@$(WINDRES) --include-dir $(INCDIR) -i $(srcdir)/../lib/res.rc -o test.o
 	@echo "windres UNICODE..."
-	@$(WINDRES) --define UNICODE --include-dir $(INCDIR) -i $(srcdir)/res.rc -o test.o
+	@$(WINDRES) --define UNICODE --include-dir $(INCDIR) -i $(srcdir)/../lib/res.rc -o test.o
 	@rm -f test.o
 
 scrnsavw.o: scrnsave.c
@@ -213,9 +228,12 @@ install-headers:
 	for i in $(HEADERS); do \
 		$(INSTALL_DATA) $(srcdir)/../include/$$i $(inst_includedir)/$$i ; \
 	done
-	$(mkinstalldirs) $(inst_includedir)/GL
-	for i in $(GL_HEADERS); do \
-		$(INSTALL_DATA) $(srcdir)/../include/GL/$$i $(inst_includedir)/GL/$$i ; \
+	for d in $(HEADER_DIRS); do \
+		$(mkinstalldirs) $(inst_includedir)/$$d ; \
+		for i in $(srcdir)/../include/$$d/*.h; do \
+			[ -e "$$i" ] || continue ; \
+			$(INSTALL_DATA) $$i $(inst_includedir)/$$d/ ; \
+		done ; \
 	done
 
 # uninstall headers and libraries from a target specified directory
@@ -229,7 +247,10 @@ uninstall-libraries:
 
 uninstall-headers:
 	@for i in $(HEADERS); do \
-		rm -r $(inst_includedir)/$$i ; \
+		rm -f $(inst_includedir)/$$i ; \
+	done
+	@for d in $(HEADER_DIRS); do \
+		rm -rf $(inst_includedir)/$$d ; \
 	done
 	rmdir $(inst_includedir)
 
@@ -239,14 +260,18 @@ dist:
 	@for i in $(HEADERS); do \
 		cp -p $(srcdir)/../include/$$i $(distdir)/include/$$i ; \
 	done
-	mkdir $(distdir)/include/GL
-	@for i in $(GL_HEADERS); do \
-		cp -p $(srcdir)/../include/GL/$$i $(distdir)/include/GL/$$i ; \
+	for d in $(HEADER_DIRS); do \
+		mkdir -p $(distdir)/include/$$d ; \
+		for i in $(srcdir)/../include/$$d/*.h; do \
+			[ -e "$$i" ] || continue ; \
+			cp -p $$i $(distdir)/include/$$d/ ; \
+		done ; \
 	done
 	mkdir $(distdir)/lib
 	chmod 755 $(distdir)/lib
 	@for i in $(DISTFILES); do \
-		cp -p $(srcdir)/$$i $(distdir)/lib/$$i ; \
+		if [ -f $(srcdir)/$$i ]; then src=$(srcdir)/$$i; else src=$(srcdir)/../lib/$$i; fi ; \
+		cp -p "$$src" $(distdir)/lib/$$i ; \
 	done
 	for i in $(SUBDIRS); do \
 		(cd $$i; $(MAKE) distdir=../$(distdir) dist); \

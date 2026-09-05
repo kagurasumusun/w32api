@@ -111,7 +111,20 @@ FLAGS_TO_PASS = \
 # headers
 
 HEADERS = $(notdir $(wildcard $(srcdir)/../include/*.h))
+# HEADER_DIRS is every subdirectory of include/ (GL, ddk, directx,
+# gdiplus, EGL, GLES2, ...), discovered rather than listed one by one.
+# The install and dist rules below used to enumerate the families by hand
+# and so silently dropped every subdirectory they did not name: for this
+# file that was ddk/ (79 headers), directx/ (5) and gdiplus/ (26), and the
+# EGL/ and GLES2/ families imported for CE 6.0's OpenGL ES support would
+# have been dropped too.  With this, a new header family is installed
+# without a Makefile change.
+HEADER_DIRS = $(notdir $(patsubst %/,%,$(dir $(wildcard $(srcdir)/../include/*/))))
+# Kept defined for out-of-tree callers; the GL family is now installed
+# by the HEADER_DIRS loop below.
 GL_HEADERS = $(notdir $(wildcard $(srcdir)/../include/GL/*.h))
+# Kept defined for out-of-tree callers; the gdiplus family is now installed
+# by the HEADER_DIRS loop below.
 GDIPLUS_HEADERS = $(notdir $(wildcard $(srcdir)/../include/gdiplus/*.h))
 
 # libraries
@@ -236,13 +249,12 @@ install-headers: $(need-DESTDIR-compatibility)
 	for i in $(HEADERS); do \
 		$(INSTALL_DATA) $(srcdir)/../include/$$i $(DESTDIR)$(inst_includedir)/$$i ; \
 	done
-	$(mkinstalldirs) $(DESTDIR)$(inst_includedir)/GL
-	for i in $(GL_HEADERS); do \
-		$(INSTALL_DATA) $(srcdir)/../include/GL/$$i $(DESTDIR)$(inst_includedir)/GL/$$i ; \
-	done
-	$(mkinstalldirs) $(DESTDIR)$(inst_includedir)/gdiplus
-	for i in $(GDIPLUS_HEADERS); do \
-		$(INSTALL_DATA) $(srcdir)/../include/gdiplus/$$i $(DESTDIR)$(inst_includedir)/gdiplus/$$i ; \
+	for d in $(HEADER_DIRS); do \
+		$(mkinstalldirs) $(DESTDIR)$(inst_includedir)/$$d ; \
+		for i in $(srcdir)/../include/$$d/*.h; do \
+			[ -e "$$i" ] || continue ; \
+			$(INSTALL_DATA) $$i $(DESTDIR)$(inst_includedir)/$$d/ ; \
+		done ; \
 	done
 
 install-ddk: install-libraries install-headers
@@ -262,7 +274,10 @@ uninstall-libraries: $(need-DESTDIR-compatibility)
 
 uninstall-headers: $(need-DESTDIR-compatibility)
 	@for i in $(HEADERS); do \
-		rm -r $(DESTDIR)$(inst_includedir)/$$i ; \
+		rm -f $(DESTDIR)$(inst_includedir)/$$i ; \
+	done
+	@for d in $(HEADER_DIRS); do \
+		rm -rf $(DESTDIR)$(inst_includedir)/$$d ; \
 	done
 	rmdir $(DESTDIR)$(inst_includedir)
 
@@ -278,9 +293,12 @@ dist:
 	@for i in $(HEADERS); do \
 		cp -p $(srcdir)/../include/$$i $(distdir)/include/$$i ; \
 	done
-	mkdir $(distdir)/include/GL
-	@for i in $(GL_HEADERS); do \
-		cp -p $(srcdir)/../include/GL/$$i $(distdir)/include/GL/$$i ; \
+	for d in $(HEADER_DIRS); do \
+		mkdir -p $(distdir)/include/$$d ; \
+		for i in $(srcdir)/../include/$$d/*.h; do \
+			[ -e "$$i" ] || continue ; \
+			cp -p $$i $(distdir)/include/$$d/ ; \
+		done ; \
 	done
 	mkdir $(distdir)/lib
 	chmod 755 $(distdir)/lib

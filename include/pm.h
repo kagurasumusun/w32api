@@ -55,7 +55,7 @@ typedef struct _POWER_BROADCAST_POWER_INFO {
 	BYTE bBackupBatteryLifePercent;
 } POWER_BROADCAST_POWER_INFO, *PPOWER_BROADCAST_POWER_INFO;
 
-/* Power broadcast values are guessed by experimentation */
+/* Power broadcast values. */
 #define	PBT_RESUME		2
 
 HANDLE SetPowerRequirement(
@@ -92,6 +92,12 @@ DWORD SetSystemPowerState(LPCWSTR,DWORD,DWORD);
 
 
 #endif	/* _WIN32_WCE */
+
+/* Windows CE power-management and battery interfaces. */
+#ifdef _WIN32_WCE
+BOOL WINAPI PowerPolicyNotify(DWORD dwMessage, DWORD dwData);
+void WINAPI BatteryDrvrGetLevels(PBYTE pbLevels); /* battery PDD interface */
+#endif /* _WIN32_WCE */
 
 #ifdef  __cplusplus
 }

@@ -32,6 +32,50 @@
 #define SH_WIN32                0
 #define SH_CURTHREAD            1
 #define SH_CURPROC              2
+/* CE 6.0 kernel API-set and handle-index definitions. */
+#if (_WIN32_WCE >= 0x0600)
+
+#define SH_FIRST_OS_HAPI_SET    1
+#define SH_FIRST_EXT_HAPI_SET   64
+#define SH_FIRST_OS_API_SET     80
+#define SH_FIRST_EXT_API_SET    112
+
+#define SH_CURTOKEN             3
+
+/* Typed handle indices used by the CE 6.0 kernel interface. */
+#define HT_EVENT                4
+#define HT_MUTEX                5
+#define HT_APISET               6
+#define HT_FILE                 7
+#define HT_FIND                 8
+#define HT_DBFILE               9
+#define HT_DBFIND               10
+#define HT_SOCKET               11
+#define HT_CRITSEC              12
+#define HT_SEMAPHORE            13
+#define HT_FSMAP                14
+#define HT_WNETENUM             15
+#define HT_AFSVOLUME            16
+
+#define SH_LAST_NOTIFY          SH_FIRST_OS_API_SET
+
+#define SH_GDI                  (SH_LAST_NOTIFY+0)
+#define SH_WMGR                 (SH_LAST_NOTIFY+1)
+#define SH_WNET                 (SH_LAST_NOTIFY+2)  /* network redirector */
+#define SH_COMM                 (SH_LAST_NOTIFY+3)  /* communications, not COM */
+#define SH_FILESYS_APIS         (SH_LAST_NOTIFY+4)  /* file system APIs */
+#define SH_SHELL                (SH_LAST_NOTIFY+5)
+#define SH_DEVMGR_APIS          (SH_LAST_NOTIFY+6)  /* file system device mgr */
+#define SH_TAPI                 (SH_LAST_NOTIFY+7)
+#define SH_SERVICES             (SH_LAST_NOTIFY+10)
+#define SH_DDRAW                (SH_LAST_NOTIFY+11)
+#define SH_D3DM                 (SH_LAST_NOTIFY+12)
+#define SH_LASTRESERVED         (SH_FIRST_EXT_API_SET-1)
+
+/* Accessor for the CE 6.0 user-mode kernel data page. */
+DWORD __GetUserKData (DWORD dwOfst);
+
+#endif /* _WIN32_WCE >= 0x0600 */
 
 /* Process/Thread ID Methods */
 static inline HANDLE GetCurrentProcess()
@@ -54,6 +98,13 @@ static inline DWORD GetCurrentProcessId()
 {
   return ((DWORD)(((HANDLE *)(PUserKData+SYSHANDLE_OFFSET))[SH_CURPROC]));
 }
+#if (_WIN32_WCE >= 0x0600)
+/* Current-token pseudo-handle for the CE 6.0 security model. */
+static inline HANDLE GetCurrentToken()
+{
+  return ((HANDLE)(SH_CURTOKEN+SYS_HANDLE_BASE));
+}
+#endif /* _WIN32_WCE >= 0x0600 */
 
 /* EventModify signature hinted on:
    http://msdn.microsoft.com/library/default.asp?url=/library/en-us/wcehardware5/html/wce50lrfCeLogImportTable.asp
@@ -108,4 +159,18 @@ static inline BOOL WINAPI TlsFree(DWORD x)
   /* externally supplied for an unsupported architecture */
   extern void DebugBreak(void);
 #endif
+
+/* Security interfaces exposed by the CE runtime. */
+#ifdef _WIN32_WCE
+DWORD CeGetCallerTrust(VOID);
+DWORD CeGetCurrentTrust(VOID);
+DWORD CeGetProcessTrust(HANDLE hProc);
+#endif /* _WIN32_WCE */
+#if (_WIN32_WCE >= 0x0600)
+/* CE 6.0 provides this as an inline query. */
+static inline DWORD WINAPI CeGetTotalProcessors (void)
+{
+  return 1;
+}
+#endif /* _WIN32_WCE >= 0x0600 */
 #endif

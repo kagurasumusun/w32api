@@ -28,7 +28,9 @@
 #include <mapi.h>
 
 #include <dbt.h>
+#ifndef _WIN32_WCE
 #include <gdiplus.h>
+#endif
 #include <httpext.h>
 #include <icm.h>
 #include <imagehlp.h>

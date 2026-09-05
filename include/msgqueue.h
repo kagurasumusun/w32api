@@ -8,6 +8,7 @@
 #pragma GCC system_header
 #endif
 
+
 #ifdef  __cplusplus
 extern "C" {
 #endif
@@ -41,8 +42,26 @@ BOOL ReadMsgQueue(HANDLE hMsgQ, LPVOID lpBuffer,
 #define	MSGQUEUE_ALLOW_BROKEN	2	/* ?? */
 
 
+
+
+
+#if (_WIN32_WCE >= 0x0600)
+BOOL WINAPI ReadMsgQueueEx(HANDLE hMsgQ, LPVOID lpBuffer, DWORD cbBufferSize,
+                LPDWORD lpNumberOfBytesRead, DWORD dwTimeout, DWORD *pdwFlags, PHANDLE phTok);
+#endif
+BOOL WINAPI WriteMsgQueue(HANDLE hMsgQ, LPVOID lpBuffer, DWORD cbDataSize,
+                DWORD dwTimeout, DWORD dwFlags);
+BOOL WINAPI GetMsgQueueInfo(HANDLE hMsgQ, LPMSGQUEUEINFO lpInfo);
+
 #ifdef  __cplusplus
 }
 #endif
 
+
+/* Windows CE message-queue and device-notification interfaces. */
+#ifdef _WIN32_WCE
+HANDLE WINAPI OpenMsgQueue(HANDLE hSrcProc, HANDLE hMsgQ, LPMSGQUEUEOPTIONS lpOptions);
+HANDLE WINAPI RequestDeviceNotifications(const GUID *devclass, HANDLE hMsgQ, BOOL fAll);
+BOOL WINAPI StopDeviceNotifications(HANDLE h);
+#endif /* _WIN32_WCE */
 #endif  /* _MSGQUEUE_H_ */

@@ -731,6 +731,26 @@ typedef LPNUMBERFMTA LPNUMBERFMT;
 #endif /* (WINVER >= 0x0500) */
 #endif /* UNICODE */
 #endif /* RC_INVOKED */
+/* Windows CE COREDLL exports (signatures from the Windows CE SDK
+ * winnls.h). */
+#ifdef _WIN32_WCE
+BOOL GetNlsTables(LPVOID *lplpTable, DWORD dwFlags, LPDWORD lpOffset, LPDWORD lpSize);
+BOOL SetACP(UINT acp);
+BOOL SetOEMCP(UINT oemcp);
+BOOL WINAPI SetSystemDefaultLCID(LCID Locale);
+BOOL SetUserDefaultLCID(LCID Locale);
+WINBASEAPI BOOL WINAPI SetUserDefaultUILanguage(LANGID langid);
+#endif /* _WIN32_WCE */
+
+
+#ifdef _WIN32_WCE
+/* CE-only NLS setters (COREDLL exports, not in desktop Win32).  */
+BOOL SetUserDefaultUILanguage(LANGID langid);
+BOOL SetUserDefaultLCID(LCID Locale);
+BOOL SetSystemDefaultLCID(LCID Locale);
+BOOL SetOEMCP(UINT oemcp);
+#endif
+
 #ifdef __cplusplus
 }
 #endif
