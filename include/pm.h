@@ -67,17 +67,17 @@ HANDLE SetPowerRequirement(
 
 DWORD ReleasePowerRequirement(HANDLE hPowerReq);
 
-#define POWER_STATE(f)           ((f) &  0xFFFF0000)        // power state mask
-#define POWER_STATE_ON           (DWORD)(0x00010000)        // on state
-#define POWER_STATE_OFF          (DWORD)(0x00020000)        // no power, full off
-#define POWER_STATE_CRITICAL     (DWORD)(0x00040000)        // critical off
-#define POWER_STATE_BOOT         (DWORD)(0x00080000)        // boot state
-#define POWER_STATE_IDLE         (DWORD)(0x00100000)        // idle state
-#define POWER_STATE_SUSPEND      (DWORD)(0x00200000)        // suspend state
-#define POWER_STATE_UNATTENDED   (DWORD)(0x00400000)        // Unattended state.
-#define POWER_STATE_RESET        (DWORD)(0x00800000)        // reset state
-#define POWER_STATE_USERIDLE     (DWORD)(0x01000000)        // user idle state
-#define POWER_STATE_PASSWORD     (DWORD)(0x10000000)        // This state is password protected.
+#define POWER_STATE(f)           ((f) &  0xFFFF0000)
+#define POWER_STATE_ON           (DWORD)(0x00010000)
+#define POWER_STATE_OFF          (DWORD)(0x00020000)
+#define POWER_STATE_CRITICAL     (DWORD)(0x00040000)
+#define POWER_STATE_BOOT         (DWORD)(0x00080000)
+#define POWER_STATE_IDLE         (DWORD)(0x00100000)
+#define POWER_STATE_SUSPEND      (DWORD)(0x00200000)
+#define POWER_STATE_UNATTENDED   (DWORD)(0x00400000)
+#define POWER_STATE_RESET        (DWORD)(0x00800000)
+#define POWER_STATE_USERIDLE     (DWORD)(0x01000000)
+#define POWER_STATE_PASSWORD     (DWORD)(0x10000000)
 
 HANDLE RequestPowerNotifications(HANDLE hMsgQ, DWORD Flags);
 BOOL StopPowerNotifications(HANDLE h);
@@ -90,15 +90,13 @@ DWORD ReleasePowerRelationship(HANDLE);
 DWORD SetDevicePower(PVOID,DWORD,CEDEVICE_POWER_STATE);
 DWORD SetSystemPowerState(LPCWSTR,DWORD,DWORD);
 
-
 #endif	/* _WIN32_WCE */
 
-/* Windows CE COREDLL exports (signatures from the Windows CE SDK
- * pm.h). */
 #ifdef _WIN32_WCE
+/* Power-policy and battery compatibility interface. */
 BOOL WINAPI PowerPolicyNotify(DWORD dwMessage, DWORD dwData);
-void WINAPI BatteryDrvrGetLevels(PBYTE pbLevels); /* battery PDD interface */
-#endif /* _WIN32_WCE */
+void WINAPI BatteryDrvrGetLevels(PBYTE pbLevels);
+#endif
 
 #ifdef  __cplusplus
 }
